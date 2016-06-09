@@ -41,7 +41,9 @@ STATUS_TEMP EQU	    H'76'   ;    during interrupt
 Init    ORG     0x0020
 
 ; @TODO: Turn OFF interrupts
-
+        BANKSEL INTCON
+        CLRF    INTCON
+        CLRF    PIE1
 ; @TODO: Set Internal Oscillator register to 4 MHz clock
 SetOSC
 

@@ -54,11 +54,20 @@ SetOSC
         MOVLW   .23             ; Increase clock frequency to make up 8.8%
         MOVWF   OSCTUNE
 
-; @TODO: Setup I/O
+; Setup I/O
     ; PORTA<0> -> Output
     ; PORTA<1> -> Input
     ; PORTB<7:0> -> Output
 SetIO
+        BANKSEL PORTA
+        CLRF    PORTA
+        CLRF    PORTB
+
+        BANKSEL TRISA
+        CLRF    ANSEL           ; Digital Inputs only ( set Analog LO )
+        CLRF    TRISB           ; PORTB are all outputs
+        CLRF    TRISA
+        BSF     TRISA, H'01'    ; PORTA<1> is input
 
 ; @TODO: Set Timer2
 SetTimer

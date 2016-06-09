@@ -40,12 +40,19 @@ STATUS_TEMP EQU	    H'76'   ;    during interrupt
 ; Microcontroller initialization
 Init    ORG     0x0020
 
-; @TODO: Turn OFF interrupts
+; Turn OFF interrupts
         BANKSEL INTCON
         CLRF    INTCON
         CLRF    PIE1
-; @TODO: Set Internal Oscillator register to 4 MHz clock
+; Set Internal Oscillator register to 4 MHz clock
 SetOSC
+        BANKSEL OSCCON
+        CLRF    OSCCON
+        BSF     OSCCON, .5      ; Set bits 5, 6 in OSCCON register for 4MHz clock
+        BSF     OSCCON, .6
+
+        MOVLW   .23             ; Increase clock frequency to make up 8.8%
+        MOVWF   OSCTUNE
 
 ; @TODO: Setup I/O
     ; PORTA<0> -> Output

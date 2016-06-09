@@ -16,6 +16,8 @@ STATUS_TEMP EQU	    H'76'   ;    during interrupt
 ; RAM preserved -----------------------------------------------------------
 
 ; Constants --------------------------------------------------------------
+CM_period   EQU	    .59	    ; Timer2 interrupts every 0.059 ms
+
      ; Program Memory ----------------------------------------------------------
 
             ORG     0x0000
@@ -67,14 +69,30 @@ SetIO
         CLRF    ANSEL           ; Digital Inputs only ( set Analog LO )
         CLRF    TRISB           ; PORTB are all outputs
         CLRF    TRISA
-        BSF     TRISA, H'01'    ; PORTA<1> is input
+        BSF     TRISA,  H'01'   ; PORTA<1> is input
 
-; @TODO: Set Timer2
+; Set Timer2
 SetTimer
+        BANKSEL T2CON
+        CLRF    T2CON
+        BSF     T2CON,  H'02'   ; Timer2 on
 
-; @TODO: Turn ON interrupts
+        BANKSEL PR2
+        MOVLW   CM_period
+        MOVWF   PR2
 
-; @TODO: MainLoop
+; Turn ON interrupts
+        BANKSEL PIR1
+        CLRF    PIR1            ; Clear current interrupt flags
+        BANKSEL PIE1
+        BSF     PIE1,   TMR2IE  ; Enable Timer2 interrupt (using p16f88.inc EQUs)
+        BANKSEL INTCON
+        BSF     INTCON, PEIE    ; Enable interrupts from peripherals
+        BSF     INTCON, GIE     ;       and global interrupts
+
+; MainLoop
+        BCF     STATUS, RP0
+        BCF     STATUS, RP1     ; Switch to Bank 0, remain here for execution
 MainLoop
 
 ; @TODO: Pulse on PORTA<0> for 10 microseconds

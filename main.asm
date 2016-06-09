@@ -9,22 +9,72 @@ Errorlevel -302 ; switches off msg [302]: Register in operand not in bank 0.
 
 ; Definitions -------------------------------------------------------------
 
+CM_counter  EQU	    H'28'   ; Location to increment on TMR2 interrupt
+W_TEMP	    EQU	    H'75'   ; Temporary storage for W and STATUS
+STATUS_TEMP EQU	    H'76'   ;    during interrupt
+
 ; RAM preserved -----------------------------------------------------------
 
 ; Constants --------------------------------------------------------------
-
      ; Program Memory ----------------------------------------------------------
 
-         ORG     0x0000
-         GOTO    Init
+            ORG     0x0000
+            GOTO    Init
 
 ; Interrupt Service Routine -----------------------------------------------
+            ORG     0x0004	    ; ISR beginning
+            MOVWF   W_TEMP	    ; Copy W to temp location (save W)
+        SWAPF   STATUS, W	    ; Use SWAP to Save STATUS without affecting STATUS bits
+        MOVWF   STATUS_TEMP
+
+        CLRF    STATUS	         ; Clear STATUS -> bank 0
+        INCF    CM_counter, F    ; Increment counter
+        CLRF    PIR1	         ; Clear interrupt flags
+
+        SWAPF   STATUS_TEMP, W
+        MOVWF   STATUS	         ; Restore STATUS from saved
+        SWAPF   W_TEMP, F
+        SWAPF   W_TEMP, W	     ; Restore W without affecting STATUS
+        RETFIE		             ; END ISR
 
 ; Microcontroller initialization
 Init    ORG     0x0020
 
+; @TODO: Turn OFF interrupts
 
+; @TODO: Set Internal Oscillator register to 4 MHz clock
+SetOSC
 
+; @TODO: Setup I/O
+    ; PORTA<0> -> Output
+    ; PORTA<1> -> Input
+    ; PORTB<7:0> -> Output
+SetIO
+
+; @TODO: Set Timer2
+SetTimer
+
+; @TODO: Turn ON interrupts
+
+; @TODO: MainLoop
+MainLoop
+
+; @TODO: Pulse on PORTA<0> for 10 microseconds
+Pulse10
+
+; @TODO: Wait for PORTA<1> to go HI, then clear TMR
+EchoWaitClear
+
+; @TODO: Wait for PORTA<1> to go LO, then read TMR into W
+EndEchoRead
+
+; @TODO: Copy TMR, convert to BCD for display
+
+; @TODO: Delay Routine
+Delay
+
+; @TODO: Display Output for 99 digits
+DisplayOutput
 
 
 Finish

@@ -1,6 +1,6 @@
-list       F=inhx8m, P=16F88, R=hex, N=0 ; File format, chip, and default radix
+        list       F=inhx8m, P=16F88, R=hex, N=0 ; File format, chip, and default radix
 
-#include p16f88.inc ;   PIC 16f88 specific register definitions
+        #include p16f88.inc ;   PIC 16f88 specific register definitions
 
 __config _CONFIG1, _MCLR_ON & _FOSC_INTOSCCLK & _WDT_OFF & _LVP_OFF & _PWRTE_OFF & _BODEN_ON & _LVP_OFF & _CPD_OFF & _WRT_PROTECT_OFF & _CCP1_RB0 & _CP_OFF
 __config _CONFIG2 , _IESO_OFF & _FCMEN_OFF
@@ -95,8 +95,22 @@ SetTimer
         BCF     STATUS, RP1     ; Switch to Bank 0, remain here for execution
 MainLoop
 
-; @TODO: Pulse on PORTA<0> for 10 microseconds
+; Pulse on PORTA<0> for 10 microseconds
 Pulse10
+        BCF     INTCON, GIE     ; Turn off interrupts for pulse duration
+        BSF     PORTA,  RA0     ; Set PORTA, RA0 HI
+        NOP                     ; Ten instruction cycles
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        BCF     PORTA,  RA0     ; Set PORTA, RA0 LO
+        BSF     INCON,  BIE     ; Turn interrupts back on
 
 ; @TODO: Wait for PORTA<1> to go HI, then clear TMR
 EchoWaitClear

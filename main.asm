@@ -130,11 +130,17 @@ EndEchoRead
         GOTO    EndEchoRead
         MOVF    CMCounter,  W   ; When RA1 = LO, copy CMCounter to W
 
-; @TODO: Copy TMR, convert to BCD for display
+; Copy TMR, convert to BCD for display
 
         MOVWF   binary
 
-        CALL BinaryToBCD
+        CALL    BinaryToBCD     ; binary -> bcdHigh and bcdLow
+
+        CALL    DisplayOutput   ; using bcdLow
+
+        CALL    Delay           ; hold before sending out another pulse
+
+        GOTO    MainLoop
 
 ; @TODO: Delay Routine
 Delay

@@ -9,7 +9,13 @@ Errorlevel -302 ; switches off msg [302]: Register in operand not in bank 0.
 
 ; Definitions -------------------------------------------------------------
 
-CMCounter  EQU	    H'28'   ; Location to increment on TMR2 interrupt
+binary      EQU     H'20'
+bcdHigh     EQU     H'21'
+bcdLow      EQU     H'22'
+counter     EQU     H'23'
+temp        EQU     H'24'
+
+CMCounter   EQU	    H'28'   ; Location to increment on TMR2 interrupt
 W_TEMP	    EQU	    H'75'   ; Temporary storage for W and STATUS
 STATUS_TEMP EQU	    H'76'   ;    during interrupt
 
@@ -122,9 +128,13 @@ EchoWaitClear
 EndEchoRead
         BTFSC   PORTA, RA1      ; Keep checking until RA1 is LOW
         GOTO    EndEchoRead
-        MOVF    CMCounter       ; When RA1 = LO, copy CMCounter to W
+        MOVF    CMCounter,  W   ; When RA1 = LO, copy CMCounter to W
 
 ; @TODO: Copy TMR, convert to BCD for display
+
+        MOVWF   binary
+
+        CALL BinaryToBCD
 
 ; @TODO: Delay Routine
 Delay
@@ -132,6 +142,36 @@ Delay
 ; @TODO: Display Output for 99 digits
 DisplayOutput
 
+
+BinaryToBCD
+        MOVLW     .5
+        MOVWF     counter
+        CLRF      bcdLow
+        CLRF      bcdHigh
+        RLF       binary,F
+        RLF       bcdLow,F
+        RLF       binary,F
+        RLF       bcdLow,F
+        RLF       binary,F
+        RLF       bcdLow,F
+
+Repeat
+        MOVFW     bcdLow
+        ADDLW     0x33
+        MOVWF     temp
+        MOVFW     bcdLow
+        BTFSC     temp, 3
+        ADDLW     0x03
+        BTFSC     temp, 7
+        ADDLW     0x30
+        MOVWF     bcdLow
+        RLF       binary,   F
+        RLF       bcdLow,   F
+        RLF       bcdHigh,  F
+
+        DECFSZ    counter,F
+        GOTO      Repeat
+        RETURN
 
 Finish
          END                 ; end of program

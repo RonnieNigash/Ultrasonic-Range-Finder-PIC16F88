@@ -130,18 +130,34 @@ EndEchoRead
         GOTO    EndEchoRead
         MOVF    CMCounter,  W   ; When RA1 = LO, copy CMCounter to W
 
-; @TODO: Copy TMR, convert to BCD for display
+; Copy TMR, convert to BCD for display
 
         MOVWF   binary
 
-        CALL BinaryToBCD
+        CALL    BinaryToBCD     ; binary -> bcdHigh and bcdLow
+
+        CALL    DisplayOutput   ; using bcdLow
+
+        CALL    Delay           ; hold before sending out another pulse
+
+        GOTO    MainLoop
 
 ; @TODO: Delay Routine
 Delay
 
-; @TODO: Display Output for 99 digits
+; Display Output for 99 digits
 DisplayOutput
+        MOVF    bcdHigh,    W   ; Check 100s column for value
+        BTFSS   STATUS,     Z   ;   If Z bit not set (no value in 100s column)
+        GOTO    Overflow        ;   else (Z bit set), display 'OF'
+        MOVF    bcdLow,     W
+        MOVWF   PORTB
+        RETURN
 
+Overflow
+        MOVLW   H'0F'           ; Send OverFlow (0F) to PORTB if we detect > 99 cm
+        MOVWF   PORTB
+        RETURN
 
 BinaryToBCD
         MOVLW     .5

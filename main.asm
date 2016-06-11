@@ -154,6 +154,11 @@ DisplayOutput
         MOVWF   PORTB
         RETURN
 
+Overflow
+        MOVLW   H'0F'           ; Send OverFlow (0F) to PORTB if we detect > 99 cm
+        MOVWF   PORTB
+        RETURN
+
 BinaryToBCD
         MOVLW     .5
         MOVWF     counter

@@ -147,7 +147,12 @@ Delay
 
 ; @TODO: Display Output for 99 digits
 DisplayOutput
-
+        MOVF    bcdHigh,    W   ; Check 100s column for value
+        BTFSS   STATUS,     Z   ;   If Z bit not set (no value in 100s column)
+        GOTO    Overflow        ;   else (Z bit set), display 'OF'
+        MOVF    bcdLow,     W
+        MOVWF   PORTB
+        RETURN
 
 BinaryToBCD
         MOVLW     .5

@@ -9,14 +9,14 @@ Errorlevel -302 ; switches off msg [302]: Register in operand not in bank 0.
 
 ; Definitions -------------------------------------------------------------
 
-CM_counter  EQU	    H'28'   ; Location to increment on TMR2 interrupt
+CMCounter  EQU	    H'28'   ; Location to increment on TMR2 interrupt
 W_TEMP	    EQU	    H'75'   ; Temporary storage for W and STATUS
 STATUS_TEMP EQU	    H'76'   ;    during interrupt
 
 ; RAM preserved -----------------------------------------------------------
 
 ; Constants --------------------------------------------------------------
-CM_period   EQU	    .59	    ; Timer2 interrupts every 0.059 ms
+CMPeriod   EQU	    .59	    ; Timer2 interrupts every 0.059 ms
 
      ; Program Memory ----------------------------------------------------------
 
@@ -30,7 +30,7 @@ CM_period   EQU	    .59	    ; Timer2 interrupts every 0.059 ms
         MOVWF   STATUS_TEMP
 
         CLRF    STATUS	         ; Clear STATUS -> bank 0
-        INCF    CM_counter, F    ; Increment counter
+        INCF    CMCounter, F    ; Increment counter
         CLRF    PIR1	         ; Clear interrupt flags
 
         SWAPF   STATUS_TEMP, W
@@ -78,7 +78,7 @@ SetTimer
         BSF     T2CON,  H'02'   ; Timer2 on
 
         BANKSEL PR2
-        MOVLW   CM_period
+        MOVLW   CMPeriod
         MOVWF   PR2
 
 ; Turn ON interrupts
@@ -110,13 +110,19 @@ Pulse10
         NOP
         NOP
         BCF     PORTA,  RA0     ; Set PORTA, RA0 LO
-        BSF     INCON,  BIE     ; Turn interrupts back on
+        BSF     INTCON, GIE     ; Turn interrupts back on
 
-; @TODO: Wait for PORTA<1> to go HI, then clear TMR
+; Wait for PORTA<1> to go HI, then clear TMR
 EchoWaitClear
+        BTFSS   PORTA, RA1      ; Keep checking until RA1 is HI
+        GOTO    EchoWaitClear
+        CLRF    CMCounter       ; When RA1 = HI, clear CMCounter
 
-; @TODO: Wait for PORTA<1> to go LO, then read TMR into W
+; Wait for PORTA<1> to go LO, then read TMR into W
 EndEchoRead
+        BTFSC   PORTA, RA1      ; Keep checking until RA1 is LOW
+        GOTO    EndEchoRead
+        MOVF    CMCounter       ; When RA1 = LO, copy CMCounter to W
 
 ; @TODO: Copy TMR, convert to BCD for display
 

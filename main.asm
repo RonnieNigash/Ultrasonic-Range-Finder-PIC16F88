@@ -15,14 +15,21 @@ bcdLow      EQU     H'22'
 counter     EQU     H'23'
 temp        EQU     H'24'
 
-CMCounter   EQU	    H'28'   ; Location to increment on TMR2 interrupt
+Loop1Index  EQU     H'25'
+Loop2Index  EQU     H'26'
+
+CMCounter   EQU	    H'27'   ; Location to increment on TMR2 interrupt
 W_TEMP	    EQU	    H'75'   ; Temporary storage for W and STATUS
 STATUS_TEMP EQU	    H'76'   ;    during interrupt
+
 
 ; RAM preserved -----------------------------------------------------------
 
 ; Constants --------------------------------------------------------------
-CMPeriod   EQU	    .59	    ; Timer2 interrupts every 0.059 ms
+CMPeriod    EQU	    .59	    ; Timer2 interrupts every 0.059 ms
+
+Loop1Count  EQU     .200    ; 60 microseconds -> 60,000 cycles
+Loop2Count  EQU     .60     ; Nested loops execute for 60,241 cycles
 
      ; Program Memory ----------------------------------------------------------
 
@@ -142,8 +149,19 @@ EndEchoRead
 
         GOTO    MainLoop
 
-; @TODO: Delay Routine
+; Delay Routine
 Delay
+        MOVLW   Loop2Count
+        MOVWF   Loop2Index
+Loop    MOVLW   Loop1Count
+        MOVWF   Loop1Index
+SubLoop NOP
+        NOP
+        DECFSZ  Loop1Index, F
+        GOTO    SubLoop
+        DECFSZ  Loop2Index, F
+        GOTO    Loop
+        RETURN
 
 ; Display Output for 99 digits
 DisplayOutput

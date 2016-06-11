@@ -145,7 +145,7 @@ EndEchoRead
 ; @TODO: Delay Routine
 Delay
 
-; @TODO: Display Output for 99 digits
+; Display Output for 99 digits
 DisplayOutput
         MOVF    bcdHigh,    W   ; Check 100s column for value
         BTFSS   STATUS,     Z   ;   If Z bit not set (no value in 100s column)
